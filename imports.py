@@ -1,29 +1,28 @@
-# General use
 import os
+os.environ["COQUI_TOS_AGREED"] = "1"          # ✅  Coqui licence acceptance (needed for XTTS)
+DEEPGRAM_API_KEY = "c61da52d30cc995538391a3d06bde0dc97fce988"   # ✅  put your Deepgram api key here
 
-# Voice extraction imports
-from pydub import AudioSegment
+# ---------------- CORE LIBS -----------------
+import subprocess, re, asyncio, nest_asyncio
+nest_asyncio.apply()                          # required if you run inside notebooks
 
-# Text extraction imports
-import json
-from deepgram import DeepgramClient, PrerecordedOptions, FileSource
+# ------------- AUDIO / VIDEO ---------------
+from pydub import AudioSegment                # used by synthesize_speech()
+from moviepy.editor import VideoFileClip      # only if you call it elsewhere
 
-# Translation imports
-from transformers import MarianTokenizer, MarianMTModel, pipeline
-import time
+# -------------  DEEPGRAM --------------------
+from deepgram import Deepgram
+deepgram_client = Deepgram(DEEPGRAM_API_KEY)
 
-# Text to speech imports
+# -------------  TRANSLATION -----------------
+from transformers import MarianMTModel, MarianTokenizer
+
+# -------------  TTS (Coqui XTTS) ------------
 import torch
+from torch.serialization import safe_globals 
 from TTS.api import TTS
-import soundfile as sf
-import pyrubberband as pyrb
-import librosa
-from audiostretchy.stretch import stretch_audio
-
-# Lip sync imports
-from tqdm import tqdm
-from IPython.display import HTML, clear_output
-from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
-
-import locale
-locale.getpreferredencoding = lambda: "UTF-8"
+from TTS.tts.configs.xtts_config import XttsConfig
+from TTS.tts.models.xtts import XttsAudioConfig, XttsArgs
+from TTS.config.shared_configs import BaseDatasetConfig
+# -------------  DEVICE FLAG ----------------
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
